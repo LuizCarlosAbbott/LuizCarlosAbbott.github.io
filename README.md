@@ -1,3 +1,2 @@
 # LuizCarlosAbbott.github.io
 
-*asctest*
