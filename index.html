@@ -633,10 +633,108 @@ int main(int, char**){
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_exercício_2_1_labeling">Exercício 2.1: Labeling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="exa_labeling" class="listingblock">
+<div class="title">labeling.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include &lt;cv.h&gt;
+#include &lt;highgui.h&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+using namespace cv;
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    Mat image, mask;
+    int width, height;
+    int nobjetos, nburaco;
+
+    CvPoint p;
+    image = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+
+    if (!image.data) {
+        cout &lt;&lt; "Não foi possível abrir a imagem";
+        return (-1);
+    }
+    height = image.size().height;
+    width = image.size().width;
+
+    p.x = 0;
+    p.y = 0;
+    for (int k = 0; k &lt; height; k++) {
+        floodFill(image, CvPoint(k,0), 0);
+        floodFill(image, CvPoint(k,255), 0);
+        floodFill(image, CvPoint(0,k), 0);
+        floodFill(image, CvPoint(255,k), 0);
+    }
+
+    nobjetos = 0; //número de objetos
+    for (int i = 0; i &lt; height; i++) {
+        for (int j = 0; j &lt; width; j++) {
+            if (image.at &lt; uchar &gt; (i, j) == 255) {
+                nobjetos++;
+                p.x = j;
+                p.y = i;
+
+                floodFill(image, p, 200);
+            }
+        }
+    }
+    floodFill(image,cvPoint(0,0), 50);
+
+    nburaco = 0; //número de buracos
+    for (int i = 0; i &lt; height; i++) {
+        for (int j = 0; j &lt; width; j++) {
+            if (image.at &lt; uchar &gt; (i, j) == 0) {
+                p.x = j;
+                p.y = i;
+                floodFill(image, p, 50);
+
+                if(image.at&lt; uchar&gt;(i, j-1) == 200)
+                {
+                    nburaco++;
+                    floodFill(image,cvPoint(p.x-1,p.y), 150);
+                }
+            }
+        }
+    }
+
+    cout &lt;&lt; "Número de objetos: " &lt;&lt; nobjetos &lt;&lt; endl;
+    cout &lt;&lt; "Número de buracos: " &lt;&lt; nburaco &lt;&lt; endl;
+
+    imshow("image", image);
+    waitKey();
+    return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="image-bolha" class="imageblock">
+<div class="content">
+<img src="imagens/terminalbolha.png" alt="terminalbolha">
+</div>
+<div class="title">Figure 5. terminalbolha.png</div>
+</div>
+<div id="image-bolhaburaco" class="imageblock">
+<div class="content">
+<img src="imagens/bolhasburaco.png" alt="bolhasburaco">
+</div>
+<div class="title">Figure 6. bolhasburaco.png</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-04-07 00:15:48 -03
+Last updated 2018-04-07 00:47:21 -03
 </div>
 </div>
 </body>
