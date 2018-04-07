@@ -5,7 +5,8 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.4">
-<title>Untitled</title>
+<meta name="author" content="Aluno: Luiz Carlos Abott Galvão Neto">
+<title>Atividades PDI DCA0445</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -419,31 +420,223 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
+<h1>Atividades PDI DCA0445</h1>
+<div class="details">
+<span id="author" class="author">Aluno: Luiz Carlos Abott Galvão Neto</span><br>
+</div>
 </div>
 <div id="content">
+<div class="sect1">
+<h2 id="_considerações_iniciais">Considerações iniciais</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>agora vem o texto normal</p>
+<p>Esta página foi criada para a exibição das atividades realizadas pelo aluno Luiz Carlos Abbott Galvão Neto na disciplina de Processamento Digital de Imagens (DCA0445) ministrada pelo professor Agostinho Brito durante o semestre 2018.1. Para compilar e executar os programas aqui apresentados é necessário salvar os arquivos .cpp juntamente com o arquivo <a href="https://LuizCarlosAbbott.github.io/codigos/Makefile">Makefile</a> em um diretório e executar a seguinte seqüência de comandos no linux:</p>
 </div>
-<div class="paragraph">
-<p>Fazer lista nao numerada
-*
-*
-<strong>
-</strong></p>
-</div>
-<div class="paragraph">
-<p>link:url [nome pra aparecer o hiperlink] ex : link: url[clique aqui]</p>
-</div>
-<div id="fig_hello" class="imageblock">
+<div class="literalblock">
 <div class="content">
-<img src="figs/hello.png" alt="Saida do programa hello">
+<pre>$ make &lt;Nome_do_arquivo_cpp&gt;
+$ ./&lt;Nome_do_arquivo_cpp&gt;</pre>
 </div>
-<div class="title">Figure 1. =*Saida do programa hello"</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_1_regions">Exercício 1: Regions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Foi utilizada a seguinte imagem para este exercício</p>
+</div>
+<div id="image-perna" class="imageblock">
+<div class="content">
+<img src="imagens/pernapato.jpeg" alt="pernapato">
+</div>
+<div class="title">Figure 1. pernapato.jpeg</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="exa_regions" class="listingblock">
+<div class="title">regions.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int, char**){
+  Mat image;
+  int p1x = 0;
+  int p1y = 0;
+  int p2x = 0;
+  int p2y = 0;
+
+
+  image= imread("pernapato.png",CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data)
+    cout &lt;&lt; "nao abriu imagem" &lt;&lt; endl;
+
+  cout &lt;&lt; "Altura da imagem: " &lt;&lt; image.size().height &lt;&lt; endl;
+  cout &lt;&lt; "Largura da imagem: " &lt;&lt; image.size().width &lt;&lt; endl;
+
+  cout &lt;&lt; "Digite as coordenadas do ponto P1(x,y)" &lt;&lt; endl &lt;&lt; "X: ";
+  cin &gt;&gt; p1x;
+  cout &lt;&lt; endl &lt;&lt; "Y: ";
+  cin &gt;&gt; p1y;
+  cout &lt;&lt; endl;
+
+  while(p1x &gt; image.size().width || p1y &gt; image.size().height){
+  cout &lt;&lt; "Digite as coordenadas do ponto P1(x,y)" &lt;&lt; endl &lt;&lt; "X: ";
+  cin &gt;&gt; p1x;
+  cout &lt;&lt; endl &lt;&lt; "Y: ";
+  cin &gt;&gt; p1y;
+  cout &lt;&lt; endl;
+  }
+
+  cout &lt;&lt; "Digite as coordenadas do ponto P2(x,y)" &lt;&lt; endl &lt;&lt; "X: ";
+  cin &gt;&gt; p2x;
+  cout &lt;&lt; endl &lt;&lt; "Y: ";
+  cin &gt;&gt; p2y;
+  cout &lt;&lt; endl;
+
+  while(p2x &gt; image.size().width || p2y &gt; image.size().height){
+  cout &lt;&lt; "Digite as coordenadas do ponto P2(x,y)" &lt;&lt; endl &lt;&lt; "X: ";
+  cin &gt;&gt; p2x;
+  cout &lt;&lt; endl &lt;&lt; "Y: ";
+  cin &gt;&gt; p2y;
+  cout &lt;&lt; endl;
+  }
+
+  if(p1x &gt; p2x){
+  int aux;
+  aux = p1x;
+  p1x = p2x;
+  p2x = aux;
+  }
+
+  if(p1y &gt; p2y){
+  int aux;
+  aux = p1x;
+  p1y = p2y;
+  p2y = aux;
+  }
+
+  for(int i= p1y;i&lt;p2y;i++){
+    for(int j=p1x;j&lt;p2x;j++){
+      image.at&lt;uchar&gt;(i,j)=255 - image.at&lt;uchar&gt;(i,j);
+    }
+  }
+  namedWindow("janela", WINDOW_AUTOSIZE);
+  imshow("janela", image);
+  waitKey();
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="image-perna" class="imageblock">
+<div class="content">
+<img src="imagens/terminalregions.png" alt="terminalregions">
+</div>
+<div class="title">Figure 2. terminalregions.png</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="image-perna" class="imageblock">
+<div class="content">
+<img src="imagens/pernapatoneg.png" alt="pernapatoneg">
+</div>
+<div class="title">Figure 3. pernapatoneg.png</div>
+</div>
+<div class="paragraph">
+<p>A mesma imagem foi utilizada para o exercício troca regions</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_1_1_troca_regions">Exercício 1.1: Troca Regions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="image-pernapng" class="imageblock">
+<div class="content">
+<img src="imagens/pernapato.png" alt="pernapato">
+</div>
+<div class="title">Figure 4. pernapato.png</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+<div id="exa_trocaregions" class="listingblock">
+<div class="title">trocaregions.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int, char**){
+  Mat image, imageaux;
+
+  image= imread("pernapato.png",CV_LOAD_IMAGE_GRAYSCALE);
+  if(!image.data)
+    cout &lt;&lt; "nao abriu pernapato.png" &lt;&lt; endl;
+
+  imageaux= imread("pernapato.png",CV_LOAD_IMAGE_GRAYSCALE);
+  if(!imageaux.data)
+    cout &lt;&lt; "nao abriu pernapato.png aux" &lt;&lt; endl;
+
+  for(int i=0;i&lt;(image.size().height)/2;i++){
+    for(int j=0;j&lt;(image.size().width)/2;j++){
+      image.at&lt;uchar&gt;(i,j) = imageaux.at&lt;uchar&gt;(i + (image.size().height)/2, j + (image.size().width)/2);
+    }
+  }
+  for(int i=(image.size().height)/2;i&lt;(image.size().height);i++){
+    for(int j=(image.size().width)/2;j&lt;(image.size().width);j++){
+      image.at&lt;uchar&gt;(i,j) = imageaux.at&lt;uchar&gt;(i - (image.size().height)/2, j - (image.size().width)/2);
+    }
+  }
+  for(int i=0;i&lt;(image.size().height)/2;i++){
+    for(int j=(image.size().width)/2;j&lt;(image.size().width);j++){
+      image.at&lt;uchar&gt;(i,j) = imageaux.at&lt;uchar&gt;(i + (image.size().height)/2, j - (image.size().width)/2);
+    }
+  }
+  for(int i=(image.size().height)/2;i&lt;(image.size().height);i++){
+    for(int j=0;j&lt;(image.size().width)/2;j++){
+      image.at&lt;uchar&gt;(i,j) = imageaux.at&lt;uchar&gt;(i - (image.size().height)/2, j + (image.size().width)/2);
+    }
+  }
+
+  namedWindow("janela", WINDOW_AUTOSIZE);
+
+  imshow("janela", image);
+  waitKey();
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Insira o texto aqui</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_2_labeling">Exercício 2: Labeling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Depois que o contador ultrapassar o nível de cinza 255, todos os objetos que passarem pelo processamento do floodFill terão seus níveis de cinza iguais a 255.</p>
+</div>
+</div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-04-06 20:02:20 -03
+Last updated 2018-04-07 00:15:48 -03
 </div>
 </div>
 </body>
