@@ -444,7 +444,7 @@ $ ./&lt;Nome_do_arquivo_cpp&gt;</pre>
 <h2 id="_exercício_1_regions">Exercício 1: Regions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Foi utilizada a seguinte imagem para este exercício</p>
+<p>Foi utilizada a seguinte imagem para este exercício.</p>
 </div>
 <div id="image-perna" class="imageblock">
 <div class="content">
@@ -453,7 +453,7 @@ $ ./&lt;Nome_do_arquivo_cpp&gt;</pre>
 <div class="title">Figure 1. pernapato.jpeg</div>
 </div>
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>Nesta atividade foi pedido para desenvolver um programa que pedisse ao usuário dois pontos para fazer uma região onde a imagem seria negativa, a imagem foi colocado em grayscale para ser desenvolvido o exercício.</p>
 </div>
 <div id="exa_regions" class="listingblock">
 <div class="title">regions.cpp</div>
@@ -534,7 +534,7 @@ int main(int, char**){
 </div>
 </div>
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>Acima temos o código que foi desenvolvido a partir do exemplo disponibilizado pelo professor Agostinho <a href="https://github.com/agostinhobritojr/agostinhobritojr.github.io/blob/master/tutoriais/pdi/exemplos/pixels.cpp">pixels.cpp</a>.</p>
 </div>
 <div id="image-perna" class="imageblock">
 <div class="content">
@@ -543,7 +543,7 @@ int main(int, char**){
 <div class="title">Figure 2. terminalregions.png</div>
 </div>
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>Executando os comandos no terminal obtemos a seguinte imagem.</p>
 </div>
 <div id="image-perna" class="imageblock">
 <div class="content">
@@ -551,25 +551,22 @@ int main(int, char**){
 </div>
 <div class="title">Figure 3. pernapatoneg.png</div>
 </div>
-<div class="paragraph">
-<p>A mesma imagem foi utilizada para o exercício troca regions</p>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_exercício_1_1_troca_regions">Exercício 1.1: Troca Regions</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>A imagem pernapato.jpeg também foi utilizada para resolver este exercício.</p>
 </div>
-<div id="image-pernapng" class="imageblock">
+<div id="image-pernajpeg" class="imageblock">
 <div class="content">
-<img src="imagens/pernapato.png" alt="pernapato">
+<img src="imagens/pernapato.jpeg" alt="pernapato">
 </div>
-<div class="title">Figure 4. pernapato.png</div>
+<div class="title">Figure 4. pernapato.jpeg</div>
 </div>
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>Para resolução deste exercício tomei por base o código anterior <strong>regions.cpp</strong>, divide a imagem em 4 quadrantes e utilizei uma imagem auxiliar para fazer a troca dos quadrantes.</p>
 </div>
 <div id="exa_trocaregions" class="listingblock">
 <div class="title">trocaregions.cpp</div>
@@ -620,8 +617,20 @@ int main(int, char**){
 }</code></pre>
 </div>
 </div>
+<div id="image-terminaltroca" class="imageblock">
+<div class="content">
+<img src="imagens/terminaltroca.png" alt="terminaltroca">
+</div>
+<div class="title">Figure 5. terminaltroca.png</div>
+</div>
 <div class="paragraph">
-<p>Insira o texto aqui</p>
+<p>Executando o código no terminal obtive a seguinte:</p>
+</div>
+<div id="image-pernapng" class="imageblock">
+<div class="content">
+<img src="imagens/pernapato.png" alt="pernapato">
+</div>
+<div class="title">Figure 6. pernapato.png</div>
 </div>
 </div>
 </div>
@@ -721,20 +730,136 @@ int main(int argc, char **argv)
 <div class="content">
 <img src="imagens/terminalbolha.png" alt="terminalbolha">
 </div>
-<div class="title">Figure 5. terminalbolha.png</div>
+<div class="title">Figure 7. terminalbolha.png</div>
 </div>
 <div id="image-bolhaburaco" class="imageblock">
 <div class="content">
 <img src="imagens/bolhasburaco.png" alt="bolhasburaco">
 </div>
-<div class="title">Figure 6. bolhasburaco.png</div>
+<div class="title">Figure 8. bolhasburaco.png</div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_3_equalize">Exercício 3: Equalize</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Para está atividade foi utilizado parte do código disponibilizado pelo professor  <a href="https://github.com/agostinhobritojr/agostinhobritojr.github.io/blob/master/tutoriais/pdi/exemplos/histogram.cpp">histogram.cpp</a>  e também uma função do OpenCV <a href="https://docs.opencv.org/2.4/doc/tutorials/imgproc/histograms/histogram_equalization/histogram_equalization.html">equalizeHist()</a> com eles foi possível equalizar a imagem da câmera em tempo real.</p>
+</div>
+<div id="exa_equalize" class="listingblock">
+<div class="title">equalize.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, char** argv){
+  Mat image, imggrayscale, imgequalize;
+  int width, height;
+  VideoCapture cap;
+  vector&lt;Mat&gt; planes;
+  Mat hist, histN;
+  int nbins = 128;
+  int flag = 0;
+  float range[] = {0, 256};
+  const float *histrange = { range };
+  bool uniform = true;
+  bool acummulate = false;
+
+  cap.open(0);
+
+  if(!cap.isOpened()){
+    cout &lt;&lt; "cameras indisponiveis";
+    return -1;
+  }
+
+  width  = cap.get(CV_CAP_PROP_FRAME_WIDTH);
+  height = cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+
+  cout &lt;&lt; "largura = " &lt;&lt; width &lt;&lt; endl;
+  cout &lt;&lt; "altura  = " &lt;&lt; height &lt;&lt; endl;
+
+  int histw = nbins, histh = nbins/2;
+
+  Mat histImg(histh, histw, CV_8UC1, Scalar(0,0,0));
+  Mat histImgN(histh, histw, CV_8UC1, Scalar(0,0,0));
+
+  while(1){
+    cap &gt;&gt; image;
+    cvtColor(image, imggrayscale, CV_BGR2GRAY);
+    equalizeHist(imggrayscale,imgequalize);
+
+    calcHist(&amp;imggrayscale, 1, 0, Mat(), hist, 1,
+             &amp;nbins, &amp;histrange,
+             uniform, acummulate);
+    calcHist(&amp;imgequalize, 1, 0, Mat(), histN, 1,
+             &amp;nbins, &amp;histrange,
+             uniform, acummulate);
+
+    normalize(hist, hist, 0, histImg.rows, NORM_MINMAX, -1, Mat());
+    normalize(histN, histN, 0, histImgN.rows, NORM_MINMAX, -1, Mat());
+
+    histImg.setTo(Scalar(0));
+    histImgN.setTo(Scalar(0));
+
+    for(int i=0; i&lt;nbins; i++){
+      line(histImg,
+           Point(i, histh),
+           Point(i, histh-cvRound(hist.at&lt;float&gt;(i))),
+           Scalar(255, 255, 255), 1, 8, 0);
+    }
+    for(int j = 0; j&lt;nbins; j++){
+      line(histImgN,
+           Point(j, histh),
+           Point(j, histh-cvRound(histN.at&lt;float&gt;(j))),
+           Scalar(255, 255, 255), 1, 8, 0);
+    }
+    histImgN.copyTo(imgequalize(Rect(0, 0       ,nbins, histh)));
+    histImg.copyTo(imggrayscale(Rect(0, 0       ,nbins, histh)));
+
+    if(flag == 0){
+    imshow("normal", imggrayscale);
+    waitKey();
+    flag = 1;
+    imshow("equalizada", imgequalize);
+    }
+    if(flag == 1){
+    imshow("normal", imggrayscale);
+    imshow("equalizada", imgequalize);
+    }
+
+    if(waitKey(30) &gt;= 0) break;
+  }
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div id="image-Equalize" class="imageblock">
+<div class="content">
+<img src="imagens/equalize.png" alt="equalize">
+</div>
+<div class="title">Figure 9. equalize.png</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_3_1_motion_detector">Exercício 3.1: Motion detector</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_4_laplaciano_do_gaussiano">Exercício 4: Laplaciano do gaussiano</h2>
+<div class="sectionbody">
+
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-04-07 00:47:21 -03
+Last updated 2018-04-07 17:45:22 -03
 </div>
 </div>
 </body>
