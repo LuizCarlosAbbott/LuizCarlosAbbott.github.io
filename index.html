@@ -851,15 +851,379 @@ int main(int argc, char** argv){
 </div>
 </div>
 <div class="sect1">
-<h2 id="_exercício_4_laplaciano_do_gaussiano">Exercício 4: Laplaciano do gaussiano</h2>
+<h2 id="_exercício_8_filtro_homomórfico">Exercício 8: Filtro Homomórfico</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Questão: Utilizando o programa exemplos/dft.cpp como referência, implemente o filtro homomórfico para melhorar imagens com iluminação irregular. Crie uma cena mal iluminada e ajuste os parâmetros do filtro homomórfico para corrigir a iluminação da melhor forma possível. Assuma que a imagem fornecida é em tons de cinza.</p>
+</div>
+<div class="paragraph">
+<p>O objetivo dessa atividade era o de construir um filtro homomórfico. Esse filtro trabalha no domínio da frequência e consegue modificar a iluminância (componentes de frequência baixas) e a reflectância (componentes de frequência alta). Assim, é um filtro utilizado, como na imagem exemplo, para cenas mal iluminadas.</p>
+</div>
+<div id="formula" class="imageblock">
+<div class="content">
+<img src="imagens/formula.png" alt="formula">
+</div>
+<div class="title">Figure 10. formula.png</div>
+</div>
+<div id="exa_homomorfico" class="listingblock">
+<div class="title">homomorfico.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include &lt;opencv2/opencv.hpp&gt;
+#include &lt;opencv2/imgproc/imgproc.hpp&gt;
 
+#define RADIUS 20
+
+using namespace cv;
+using namespace std;
+
+	int yL, yLmax=100;
+	int yH, yHmax=100;
+	int D0, D0max=100;
+	int C0, C0max=100;
+
+
+  Mat complexImage;
+  Mat padded, filter,res,filtrada;
+  Mat image,imagegray, tmp;
+  Mat_&lt;float&gt; realInput, zeros;
+  vector&lt;Mat&gt; planos;
+  // valores ideais dos tamanhos da imagem
+  // para calculo da DFT
+  int dft_M, dft_N;
+  char TrackbarName[50];
+  char key;
+
+void on_trackbar_filtro(int, void*){
+
+    int dft_M= tmp.size().height;
+    int dft_N= tmp.size().width;
+
+    double gH= yH/10.0;
+    double gL= yL/10.0;
+    double d0= D0/10.0;
+    // variacao 0-0.1
+    double c0= C0/1000.0;
+
+  for(int i=0; i&lt;dft_M; i++){
+    for(int j=0; j&lt;dft_N; j++){
+    	double D= pow(i-dft_M/2,2)+pow(j-dft_N/2, 2);
+      tmp.at&lt;float&gt; (i,j) = (gH-gL)*(1-exp(-c0*D/pow(d0,2)))+gL;
+      }
+   }
+
+    // junta os planos imaginario e real
+    Mat comps[]= {tmp, tmp};
+    merge(comps, 2, filter);
+}
+// troca os quadrantes da imagem da DFT
+void deslocaDFT(Mat&amp; image ){
+  Mat tmp, A, B, C, D;
+
+  // se a imagem tiver tamanho impar, recorta a regiao para
+  // evitar cópias de tamanho desigual
+  image = image(Rect(0, 0, image.cols &amp; -2, image.rows &amp; -2));
+  int cx = image.cols/2;
+  int cy = image.rows/2;
+
+  // reorganiza os quadrantes da transformada
+  // A B   -&gt;  D C
+  // C D       B A
+  A = image(Rect(0, 0, cx, cy));
+  B = image(Rect(cx, 0, cx, cy));
+  C = image(Rect(0, cy, cx, cy));
+  D = image(Rect(cx, cy, cx, cy));
+
+  // A &lt;-&gt; D
+  A.copyTo(tmp);  D.copyTo(A);  tmp.copyTo(D);
+
+  // C &lt;-&gt; B
+  C.copyTo(tmp);  B.copyTo(C);  tmp.copyTo(B);
+}
+
+int main(int argc, char** argv){
+
+
+  image = imread(argv[1],CV_LOAD_IMAGE_GRAYSCALE);
+
+  namedWindow("com filtro", CV_WINDOW_AUTOSIZE);
+
+    sprintf( TrackbarName, "yH x %d", yHmax );
+    createTrackbar( TrackbarName, "com filtro",&amp;yH,
+    						 yHmax,
+    						 on_trackbar_filtro);
+
+    sprintf( TrackbarName, "yL x %d", yLmax );
+    createTrackbar( TrackbarName, "com filtro",&amp;yL,
+    						 yLmax,
+    						 on_trackbar_filtro);
+
+    sprintf( TrackbarName, "D0 x %d", D0max );
+    createTrackbar( TrackbarName, "com filtro",&amp;D0,
+    						 D0max,
+    						 on_trackbar_filtro);
+
+    sprintf( TrackbarName, "C0 x %d", D0max );
+    createTrackbar( TrackbarName, "com filtro",&amp;C0,
+    						 C0max,
+    						 on_trackbar_filtro);
+
+
+  // identifica os tamanhos otimos para
+  // calculo do FFT
+  dft_M = getOptimalDFTSize(image.rows);
+  dft_N = getOptimalDFTSize(image.cols);
+
+  // realiza o padding da imagem
+  copyMakeBorder(image, padded, 0,
+                 dft_M - image.rows, 0,
+                 dft_N - image.cols,
+                 BORDER_CONSTANT, Scalar::all(0));
+
+  // parte imaginaria da matriz complexa (preenchida com zeros)
+  zeros = Mat_&lt;float&gt;::zeros(padded.size());
+
+  // prepara a matriz complexa para ser preenchida
+  complexImage = Mat(padded.size(), CV_32FC2, Scalar(0));
+
+  // a função de transferência (filtro frequencial) deve ter o
+  // mesmo tamanho e tipo da matriz complexa
+  filter = complexImage.clone();
+
+  // cria uma matriz temporária para criar as componentes real
+  // e imaginaria do filtro ideal
+  tmp = Mat(dft_M, dft_N, CV_32F);
+
+
+  while(1){
+
+    imagegray= image.clone();
+
+    imshow("original", imagegray);
+
+    // realiza o padding da imagem
+    copyMakeBorder(imagegray, padded, 0,
+                   dft_M - image.rows, 0,
+                   dft_N - image.cols,
+                   BORDER_CONSTANT, Scalar::all(0));
+    // limpa o array de matrizes que vao compor a
+    // imagem complexa
+    planos.clear();
+    // cria a compoente real
+    realInput = Mat_&lt;float&gt;(padded);
+    realInput += Scalar::all(1);
+    // calcula o log da imagem
+    log(realInput, realInput);
+    // insere as duas componentes no array de matrizes
+    planos.push_back(realInput);
+    planos.push_back(zeros);
+
+    // combina o array de matrizes em uma unica
+    // componente complexa
+    merge(planos, complexImage);
+    // calcula o dft
+    dft(complexImage, complexImage);
+
+    // realiza a troca de quadrantes
+    deslocaDFT(complexImage);
+
+    // aplica o filtro frequencial
+    mulSpectrums(complexImage,filter,complexImage,0);
+
+    // troca novamente os quadrantes
+    deslocaDFT(complexImage);
+
+    // calcula a DFT inversa
+    idft(complexImage, complexImage,DFT_SCALE);
+
+    // limpa o array de planos
+    planos.clear();
+
+    // separa as partes real e imaginaria da
+    // imagem filtrada
+    split(complexImage, planos);
+    // calcular expodencial
+    exp(planos[0], planos[0]);
+
+    // normaliza a parte real para exibicao
+    normalize(planos[0], planos[0], 0, 1, CV_MINMAX);
+    imshow("com filtro", planos[0]);
+    planos[0].convertTo(filtrada, CV_8UC1, 255.0);
+    imwrite("comfiltro.png",filtrada);
+
+    vector&lt;Mat&gt; pFiltro;
+    split(filter,pFiltro);
+    normalize(pFiltro[0], pFiltro[0], 0, 1, CV_MINMAX);
+    // converte para uchar para salvar
+    pFiltro[0].convertTo(res, CV_8UC1, 255.0);
+    imshow("filtro",res);
+    imwrite("filtro.png",res);
+
+    key = (char) waitKey(10);
+    if( key == 27 ) break; // esc pressed!
+    }
+
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div id="jurassic" class="imageblock">
+<div class="content">
+<img src="imagens/algo.png" alt="algo">
+</div>
+<div class="title">Figure 11. jurassic.png</div>
+</div>
+<div id="filtro" class="imageblock">
+<div class="content">
+<img src="imagens/filtro.png" alt="filtro">
+</div>
+<div class="title">Figure 12. filtro.png</div>
+</div>
+<div id="filtro" class="imageblock">
+<div class="content">
+<img src="imagens/comfiltro.png" alt="comfiltro">
+</div>
+<div class="title">Figure 13. filtrado.png</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exercício_9_canny_e_pontilhismo">Exercício 9: Canny e Pontilhismo</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Nesse exercício, foram utilizadas as técnicas de detecção de borda de Canny e de pontilhismo para realizar uma arte digital. Primeiro com base no arquivo pontilhismo.cpp são desenhados os círculos primários e depois, com a detecção de borda por Canny, os pixels de borda da imagem são reforçados.</p>
+</div>
+<div id="exa_canny" class="listingblock">
+<div class="title">canny.cpp</div>
+<div class="content">
+<pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;iostream&gt;
+#include "opencv2/opencv.hpp"
+#include &lt;fstream&gt;
+#include &lt;iomanip&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;numeric&gt;
+#include &lt;ctime&gt;
+#include &lt;cstdlib&gt;
+
+using namespace std;
+using namespace cv;
+
+
+#define STEP 5
+#define JITTER 3
+#define RAIO 4
+
+int top_slider = 10;
+int top_slider_max = 200;
+
+char TrackbarName[50];
+
+Mat image,imgray, border,points;
+  int width, height;
+  Vec3b colors;
+  int x, y;
+  vector&lt;int&gt; yrange;
+  vector&lt;int&gt; xrange;
+
+void on_trackbar_canny(int, void*){
+
+  Canny(imgray, border, top_slider, 3*top_slider);
+  imshow("cannyborders.png", border);
+  points = Mat(height, width, CV_8UC3, Scalar(255,255,255));
+  random_shuffle(xrange.begin(), xrange.end());
+  for(auto i : xrange){
+    random_shuffle(yrange.begin(), yrange.end());
+    for(auto j : yrange){
+
+      if(border.at&lt;uchar&gt;(j,i) == 255)
+      {
+          x = i+rand()%(2*JITTER)-JITTER+1;
+          y = j+rand()%(2*JITTER)-JITTER+1;
+          colors = image.at&lt;Vec3b&gt;(y,x);
+          circle(points, Point(x,y),2, CV_RGB(colors[2],colors[1],colors[0]), -1, CV_AA);
+      }
+      else{
+          x = i+rand()%(2*JITTER)-JITTER+1;
+          y = j+rand()%(2*JITTER)-JITTER+1;
+          colors = image.at&lt;Vec3b&gt;(x,y);
+          circle(points,
+                 cv::Point(y,x),
+                 RAIO,
+                 CV_RGB(colors[2],colors[1],colors[0]),
+                 -1,
+                 CV_AA);
+      }
+    }
+  }
+  imshow("canny",points);
+
+}
+
+int main(int argc, char**argv){
+
+  image= imread(argv[1],CV_LOAD_IMAGE_COLOR);
+  cvtColor(image,imgray, CV_BGR2GRAY);
+
+  srand(time(0));
+
+  if(!image.data){
+  cout &lt;&lt; "nao abriu" &lt;&lt; argv[1] &lt;&lt; endl;
+    cout &lt;&lt; argv[0] &lt;&lt; " imagem.jpg";
+    exit(0);
+  }
+
+  width=image.size().width;
+  height=image.size().height;
+
+  xrange.resize(height/STEP);
+  yrange.resize(width/STEP);
+
+  iota(xrange.begin(), xrange.end(), 0);
+  iota(yrange.begin(), yrange.end(), 0);
+
+  for(uint i=0; i&lt;xrange.size(); i++){
+    xrange[i]= xrange[i]*STEP+STEP/2;
+  }
+
+  for(uint i=0; i&lt;yrange.size(); i++){
+    yrange[i]= yrange[i]*STEP+STEP/2;
+  }
+
+  sprintf( TrackbarName, "Threshold inferior", top_slider_max );
+
+  namedWindow("canny",1);
+  createTrackbar( TrackbarName, "canny",
+                &amp;top_slider,
+                top_slider_max,
+                on_trackbar_canny );
+
+  on_trackbar_canny(top_slider, 0 );
+
+  waitKey();
+  imwrite("cannypontos.png",points);
+  return 0;
+}</code></pre>
+</div>
+</div>
+<div id="asura" class="imageblock">
+<div class="content">
+<img src="imagens/asura.png" alt="asura">
+</div>
+<div class="title">Figure 14. asura.png</div>
+</div>
+<div id="cannypontos" class="imageblock">
+<div class="content">
+<img src="imagens/cannypontos.png" alt="cannypontos">
+</div>
+<div class="title">Figure 15. asuracanny.png</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-04-07 18:02:55 -03
+Last updated 2018-05-21 20:53:09 -03
 </div>
 </div>
 </body>
